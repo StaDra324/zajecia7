@@ -1,4 +1,32 @@
 
+#' ---
+#' title: "Text Mining: Model Bag of Words"
+#' author: "Autor: ...."
+#' date: "`r Sys.Date()`"
+#' output:
+#'   html_document:
+#'     df_print: paged
+#'     theme: spacelab # Wygląd (bootstrap, cerulean, darkly, journal, lumen, paper, readable, sandstone, simplex, spacelab, united, yeti)
+#'     highlight: kate # Kolorowanie składni (haddock, kate, espresso, breezedark)
+#'     toc: true            # Spis treści
+#'     toc_depth: 3
+#'     toc_float:
+#'       collapsed: false
+#'       smooth_scroll: true
+#'     code_folding: hide    # Kod domyślnie zwinięty (estetyczniej)
+#'     number_sections: true # Numeruje nagłówki (lepsza nawigacja)
+#'     css: "custom.css"     # Możliwość stworzenia własnego stylowania (opcjonalne)
+#' ---
+
+
+
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE
+)
+
+
+#' # Wymagane pakiety
 # Wymagane pakiety ----
 library(tm)           # Przetwarzanie tekstu
 library(SnowballC)    # Stemming
@@ -12,7 +40,7 @@ library(ggrepel)      # Dodawania etykiet w wykresach
 library(DT)           # Interaktywne tabele
 
 
-
+#' # Dane tekstowe
 # Dane tekstowe ----
 
 # Ustaw Working Directory!
@@ -42,11 +70,11 @@ corpus[[1]][2]
 
 
 
-
+#' # Przetwarzanie i oczyszczanie tekstu
 # 1. Przetwarzanie i oczyszczanie tekstu ----
 # (Text Preprocessing and Text Cleaning)
 
-
+#' ## Normalizacja i usunięcie zbędnych znaków
 # Normalizacja i usunięcie zbędnych znaków ----
 
 
@@ -115,7 +143,7 @@ corpus[[1]][[1]][7:9]
 
 
 
-
+#' ## Stemming
 # Stemming ----
 
 # zachowaj kopię korpusu 
@@ -132,7 +160,7 @@ corpus[[1]][[1]][7:9]
 corpus_stemmed[[1]][[1]][7:9]
 
 
-
+#'## Uzupełnienie rdzeni słów po stemmingu
 # Uzupełnienie rdzeni słów po stemmingu ----
 
 # funkcja pomocnicza: wykonuje stemCompletion linia po linii
@@ -170,13 +198,14 @@ corpus_stemmed[[1]][[1]][7:9]
 
 
 
-
+#' ## Tokenizacja
 # Tokenizacja ----
 
-
+#' # Reprezentacja tekstu - macierze częstości TDM i DTM
 # Macierze częstości TDM i DTM ----
 
 
+#' ## Funkcja TermDocumentMatrix()
 # a) Funkcja TermDocumentMatrix() ----
 # tokeny = wiersze, dokumenty = kolumny
 tdm <- TermDocumentMatrix(corpus_completed)
@@ -191,6 +220,7 @@ tdm_m[1:5, 1:5]
 # write.csv(tdm_m, file="TDM.csv")
 
 
+#' ## Funkcja DocumentTermMatrix()
 # b) Funkcja DocumentTermMatrix() ----
 # dokumenty = wiersze, tokeny = kolumny
 dtm <- DocumentTermMatrix(corpus_completed)
@@ -204,7 +234,7 @@ dtm_m[1:5, 1:5]
 # write.csv(dtm_m, file="DTM.csv")
 
 
-
+#' # Zliczanie częstości słów
 # 2. Zliczanie częstości słów ----
 # (Word Frequency Count)
 
@@ -219,7 +249,7 @@ dtm_df <- data.frame(word = names(v2), freq = v2)
 head(dtm_df, 10)
 
 
-
+#' # Eksploracyjna analiza danych
 # 3. Eksploracyjna analiza danych ----
 # (Exploratory Data Analysis, EDA)
 
@@ -234,7 +264,7 @@ print(head(tdm_df, 10))
 
 
 
-
+#' # Inżynieria cech w modelu Bag of Words: reprezentacja słów i dokumentów w przestrzeni wektorowej
 # 4. Inżynieria cech w modelu Bag of Words: ----
 # Reprezentacja słów i dokumentów w przestrzeni wektorowej ----
 # (Feature Engineering in vector-space BoW model)
@@ -255,12 +285,12 @@ dtm_m[1:5, 1:5]
 
 
 
-
+#' # UCZENIE MASZYNOWE NIENADZOROWANE
 # UCZENIE MASZYNOWE NIENADZOROWANE ----
 # (Unsupervised Machine Learning)
 
 
-
+#' ## Klastrowanie k-średnich (k-means)
 # Klastrowanie k-średnich (k-means) ----
 
 
@@ -276,7 +306,7 @@ fviz_nbclust(t(dtm_m), kmeans, method = "silhouette") +
 set.seed(123) # ziarno losowe dla replikacji wyników
 
 
-
+#' ### Liczba klastrów k = 2
 # a) Ustaw liczbę klastrów k = 2 ----
 k <- 2 # ustaw liczbę klastrów
 
@@ -349,7 +379,7 @@ for (i in 1:k) {
 
 
 
-
+#' ### Przypisanie dokumentów do klastrów
 # a) Przypisanie dokumentów do klastrów ----
 document_names <- names(corpus)  # Nazwy dokumentów z korpusu
 clusters <- klastrowanie$cluster  # Przypisanie dokumentów do klastrów
@@ -362,6 +392,7 @@ documents_clusters <- data.frame(Dokument = document_names,
 print(documents_clusters)
 
 
+#' ### Wizualizacja przypisania dokumentów do klastrów
 # a) Wizualizacja przypisania dokumentów do klastrów ----
 ggplot(documents_clusters, aes(x = reorder(Dokument, Klaster), fill = Klaster)) +
   geom_bar(stat = "count", width = 0.7) +
@@ -378,7 +409,7 @@ ggplot(documents_clusters, aes(x = reorder(Dokument, Klaster), fill = Klaster)) 
 
 
 
-
+#' ### Dalsze przykłady
 # b) Ustaw liczbę klastrów k = 3 ----
 k <- 3 # ustaw liczbę klastrów
 
@@ -572,7 +603,6 @@ ggplot(documents_clusters, aes(x = reorder(Dokument, Klaster), fill = Klaster)) 
        y = "Liczba wystąpień (powinna wynosić 1)",
        fill = "Klaster") +
   theme_minimal(base_size = 13)
-
 
 
 
